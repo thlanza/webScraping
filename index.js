@@ -1,16 +1,19 @@
-const request = require('request-promise');
+const requestPromise = require('request-promise');
 const cheerio = require('cheerio');
 const fs = require('fs');
+const request = require('request');
 
-const URLS = ['https://www.imdb.com/title/tt0068646/?ref_=nv_sr_srsg_0', 
-'https://www.imdb.com/title/tt0144084/?ref_=nv_sr_srsg_0'];
+const URLS = [{ url: 'https://www.imdb.com/title/tt0068646/?ref_=nv_sr_srsg_0',
+id: 'the_godfather' }, 
+{ url: 'https://www.imdb.com/title/tt0144084/?ref_=nv_sr_srsg_0',
+id: 'american_psycho' }] ;
 
 (async () => {
     let moviesData = [];
     for(let movie of URLS) {
-    const response = await request(
+    const response = await requestPromise(
         {
-            uri: movie,
+            uri: movie.url,
             headers: {
                 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
                 'Accept-Encoding': 'gzip, deflate',
@@ -30,7 +33,7 @@ const URLS = ['https://www.imdb.com/title/tt0068646/?ref_=nv_sr_srsg_0',
     let poster = $('div[class="poster"] > a > img').attr('src');
     let totalRatings =  $('div[class="imdbRating"] > a').text()
     let releaseDate = $('a[title="See more release dates"]').text().trim();
-
+    let popularity = $('#title-overview-widget > div.plot_summary_wrapper > div.titleReviewBar > div:nth-child(5) > div.titleReviewBarSubItem > div:nth-child(2) > span').text().trim();
     let genres = [];
     $('div[class="title_wrapper"] a[href^="/search/title?genres"]').each((i, elm) => {
         let genre = $(elm).text();
@@ -43,12 +46,16 @@ const URLS = ['https://www.imdb.com/title/tt0068646/?ref_=nv_sr_srsg_0',
         poster,
         totalRatings,
         releaseDate,
-        genres
+        genres,
+        popularity
     })
 
     }
 
-    fs.writeFileSync('./data.json', JSON.stringify(moviesData), 'utf-8')
+    let file = fs.createWriteStream()
+    // const json2csvParser = new Json2csvParser();
+    // const csv = json2csvParser.parse(moviesData);
+    // fs.writeFileSync('./data.csv', csv, 'utf-8')
 
-    console.log(moviesData);
+    console.log(csv);
 })()
